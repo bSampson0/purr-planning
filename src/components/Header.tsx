@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { Moon, Sun, Cat } from 'lucide-react';
+import { useSound } from '../context/SoundContext';
+
+// ...existing imports...
 
 const Header = () => {
   const { theme, toggleTheme } = useTheme();
   const [scrolled, setScrolled] = useState(false);
+  const { soundEnabled, toggleSound } = useSound();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -30,17 +34,30 @@ const Header = () => {
             Purr Planning Poker
           </h1>
         </div>
-        <button
-          onClick={toggleTheme}
-          className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
-          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-        >
-          {theme === 'dark' ? (
-            <Sun className="h-6 w-6 text-amber-300" />
-          ) : (
-            <Moon className="h-6 w-6 text-amber-700" />
-          )}
-        </button>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {theme === 'dark' ? (
+              <Sun className="h-6 w-6 text-amber-300" />
+            ) : (
+              <Moon className="h-6 w-6 text-amber-700" />
+            )}
+          </button>
+          <label className="flex items-center cursor-pointer ml-4">
+            <input
+              type="checkbox"
+              checked={soundEnabled}
+              onChange={toggleSound}
+              className="form-checkbox h-5 w-5 text-amber-600"
+            />
+            <span className="ml-2 text-amber-800 dark:text-amber-300 select-none">
+              {soundEnabled ? 'Sound On' : 'Sound Off'}
+            </span>
+          </label>
+        </div>
       </div>
     </header>
   );

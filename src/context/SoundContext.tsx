@@ -24,13 +24,13 @@ interface SoundProviderProps {
 }
 
 export const SoundProvider: React.FC<SoundProviderProps> = ({ children }) => {
-  const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(false);
   
   // Sound URLs
   const sounds: Record<SoundType, string> = {
-    meow: 'https://assets.mixkit.co/active_storage/sfx/212/212-preview.mp3',
-    purr: 'https://assets.mixkit.co/active_storage/sfx/2532/2532-preview.mp3',
-    hiss: 'https://assets.mixkit.co/active_storage/sfx/2531/2531-preview.mp3'
+    meow: 'https://assets.mixkit.co/active_storage/sfx/93/93-preview.mp3',
+    purr: 'https://assets.mixkit.co/active_storage/sfx/91/91-preview.mp3',
+    hiss: 'https://assets.mixkit.co/active_storage/sfx/89/89-preview.mp3'
   };
   
   const toggleSound = () => {

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate, useParams } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useNavigate, useParams, useLocation } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import { GameProvider } from './context/GameContext';
 import { SoundProvider } from './context/SoundContext';
@@ -18,7 +18,7 @@ function JoinRoom({ setUsername }: { setUsername: (name: string) => void }) {
     await signInAnonymously(auth);
     setUsername(username);
     const id = roomId.trim() || uuidv4();
-    navigate(`/rooms/${id}`);
+    navigate(`/rooms/${id}`, { state: { username } });
   };
 
   return (
@@ -95,8 +95,11 @@ function UsernamePrompt({ onSubmit }: { onSubmit: (name: string) => void }) {
 
 function RoomWrapper() {
   const { roomId } = useParams();
-  const [username, setUsername] = useState<string>('');
-  const [isAuthed, setIsAuthed] = useState<boolean>(false);
+  const location = useLocation();
+  // Try to get username from navigation state
+  const initialUsername = location.state?.username || '';
+  const [username, setUsername] = useState<string>(initialUsername);
+  const [isAuthed, setIsAuthed] = useState<boolean>(!!initialUsername);
 
   const handleJoin = async (name: string) => {
     await signInAnonymously(auth);
@@ -118,7 +121,7 @@ function RoomWrapper() {
   }
 
   return (
-    <GameProvider roomId={roomId!}>
+    <GameProvider roomId={roomId}>
       <Dashboard username={username} />
     </GameProvider>
   );
