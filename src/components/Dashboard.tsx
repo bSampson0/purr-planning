@@ -51,7 +51,7 @@ const Dashboard: React.FC<DashboardProps> = ({ username }) => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-6 flex flex-col lg:flex-row gap-6">
+    <div className="container mx-auto px-4 py-6 flex flex-col lg:flex-row gap-6 bg-white dark:bg-gray-800">
       <div className="flex-grow">
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">

@@ -52,8 +52,6 @@ interface GameProviderProps {
   roomId?: string; // Optional, can be passed to use a specific room
 }
 
-const roomId = 'default-room'; // Replace with dynamic logic if needed
-
 export const GameProvider: React.FC<GameProviderProps> = ({ children, roomId }) => {
   const [gameState, setGameState] = useState<GameState>('voting');
   const [players, setPlayers] = useState<Player[]>([]);
