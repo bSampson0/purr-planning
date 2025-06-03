@@ -104,7 +104,6 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children, roomId }) 
       if (docSnap.exists()) {
         const data = docSnap.data();
         if (data.gameState) setGameState(data.gameState);
-        console.log('Game state updated:', data.gameState);
       }
     });
     return unsub;
@@ -150,16 +149,24 @@ const joinGame = async (name: string) => {
     });
   };
 
-  const clearVotes = async () => {
-    if (!roomId) return;
-    const votesCol = collection(db, `rooms/${roomId}/vote`);
-    const votesSnap = await getDocs(votesCol);
-    const batch = writeBatch(db);
-    votesSnap.forEach(docSnap => {
-      batch.delete(docSnap.ref);
-    });
-    await batch.commit();
-  };
+const clearVotes = async () => {
+  if (!roomId) return;
+  const votesCol = collection(db, `rooms/${roomId}/vote`);
+  const votesSnap = await getDocs(votesCol);
+  const batch = writeBatch(db);
+  votesSnap.forEach(docSnap => {
+    batch.delete(docSnap.ref);
+  });
+
+  // Clear vote field in each player document
+  const playersCol = collection(db, `rooms/${roomId}/players`);
+  const playersSnap = await getDocs(playersCol);
+  playersSnap.forEach(playerDoc => {
+    batch.update(playerDoc.ref, { vote: null });
+  });
+
+  await batch.commit();
+};
 
   // Start voting (reset all votes)
 const startVoting = async () => {
