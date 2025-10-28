@@ -5,12 +5,12 @@ import { CardType } from '../types';
 import { catCards } from '../data/cards';
 
 const EstimationCards = () => {
-  const { selectCard, selectedCard, gameState } = useGame();
+  const { selectCard, selectedCard, gameState, isBooted } = useGame();
   const { playSound } = useSound();
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
 
   const handleCardSelect = (card: CardType) => {
-    if (gameState !== 'voting') return;
+    if (gameState !== 'voting' || isBooted) return;
     
     playSound('meow');
     selectCard(card.value);
@@ -21,15 +21,17 @@ const EstimationCards = () => {
       {catCards.map((card) => (
         <div
           key={card.value}
-          className={`relative cursor-pointer transition-all duration-300 transform ${
-            hoveredCard === card.value ? 'scale-105' : 'scale-100'
+          className={`relative transition-all duration-300 transform ${
+            isBooted 
+              ? 'opacity-50 cursor-not-allowed' 
+              : `cursor-pointer ${hoveredCard === card.value ? 'scale-105' : 'scale-100'}`
           } ${
             selectedCard === card.value 
               ? 'ring-4 ring-amber-400 dark:ring-amber-500' 
-              : 'hover:shadow-lg'
+              : !isBooted ? 'hover:shadow-lg' : ''
           }`}
           onClick={() => handleCardSelect(card)}
-          onMouseEnter={() => setHoveredCard(card.value)}
+          onMouseEnter={() => !isBooted && setHoveredCard(card.value)}
           onMouseLeave={() => setHoveredCard(null)}
         >
           <div className="bg-white dark:bg-gray-700 rounded-xl overflow-hidden shadow-md">

@@ -5,6 +5,7 @@ export interface Player {
   name: string;
   avatar: string;
   vote: string | null;
+  isAdmin: boolean;
 }
 
 export interface Reaction {

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { v4 as uuidv4 } from '../utils/uuid';
 import { Player, GameState, Message, Reaction, CatAvatar } from '../types';
 import { generateAvatarUrl } from '../utils/avatars';
@@ -26,12 +26,16 @@ interface GameContextType {
   messages: Message[];
   selectedCard: string | null;
   playerAvatar: CatAvatar;
+  currentPlayer: Player | null;
+  isAdmin: boolean;
+  isBooted: boolean;
   joinGame: (name: string) => void;
   leaveGame: (name: string) => void;
   selectCard: (value: string) => void;
   startVoting: () => void;
   revealCards: () => void;
   resetGame: () => void;
+  bootPlayer: (playerId: string) => void;
   sendMessage: (sender: string, text: string) => void;
   sendReaction: (sender: string, emoji: string, messageId: string) => void;
   updateAvatar: (avatar: CatAvatar) => void;
@@ -57,22 +61,53 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children, roomId }) 
   const [players, setPlayers] = useState<Player[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
+  const [currentPlayer, setCurrentPlayer] = useState<Player | null>(null);
+  const [isBooted, setIsBooted] = useState<boolean>(false);
   const [playerAvatar, setPlayerAvatar] = useState<CatAvatar>({
     color: 'orange',
     accessory: 'none',
     mood: 'happy'
   });
 
+  // Use refs to track state without causing re-renders
+  const previousPlayerRef = useRef<Player | null>(null);
+  const bootingPlayersRef = useRef<Set<string>>(new Set());
+
   const auth = getAuth();
   const user = auth.currentUser;
+
+  // Calculate if current user is admin
+  const isAdmin = currentPlayer?.isAdmin || false;
 
   // Listen for players
   useEffect(() => {
     const unsub = onSnapshot(collection(db, `rooms/${roomId}/players`), (snapshot) => {
-      setPlayers(snapshot.docs.map(doc => doc.data() as Player));
+      const playersData = snapshot.docs.map(doc => doc.data() as Player);
+      
+      // Filter out players that are currently being booted
+      const filteredPlayers = playersData.filter(player => !bootingPlayersRef.current.has(player.id));
+      setPlayers(filteredPlayers);
+      
+      // Update current player if user exists
+      if (user) {
+        const currentPlayerData = playersData.find(p => p.id === user.uid);
+        
+        // Check if the current user has been booted
+        // We had a player before but not anymore = booted
+        if (previousPlayerRef.current && !currentPlayerData) {
+          setIsBooted(true);
+        } else if (currentPlayerData) {
+          // Reset booted status if player is found
+          setIsBooted(false);
+        }
+        
+        // Update refs and state
+        previousPlayerRef.current = currentPlayerData || null;
+        setCurrentPlayer(currentPlayerData || null);
+      }
     });
     return unsub;
-  }, [roomId]);
+  }, [roomId, user]);
 
   useEffect(() => {
     if (!roomId) return;
@@ -114,29 +149,86 @@ const joinGame = async (name: string) => {
   if (!user) return;
   const roomDocRef = doc(db, `rooms/${roomId}`);
   const roomSnap = await getDoc(roomDocRef);
+  
+  let isFirstPlayer = false;
   if (!roomSnap.exists()) {
-    // Create the room document with initial state
-    await setDoc(roomDocRef, { gameState: 'voting', createdAt: serverTimestamp() });
+    // Create the room document with initial state and mark this user as admin
+    await setDoc(roomDocRef, { 
+      gameState: 'voting', 
+      createdAt: serverTimestamp(),
+      adminId: user.uid
+    });
+    isFirstPlayer = true;
+  } else {
+    // Check if this is the first player by checking if there are no existing players
+    const playersSnapshot = await getDocs(collection(db, `rooms/${roomId}/players`));
+    isFirstPlayer = playersSnapshot.empty;
+    
+    // If this is the first player but room exists without adminId, set them as admin
+    if (isFirstPlayer && !roomSnap.data()?.adminId) {
+      await updateDoc(roomDocRef, { adminId: user.uid });
+    }
   }
+  
   const playerDoc = doc(db, `rooms/${roomId}/players/${user.uid}`);
   await setDoc(playerDoc, {
     id: user.uid,
     name,
     avatar: generateAvatarUrl(playerAvatar),
     vote: null,
+    isAdmin: isFirstPlayer || roomSnap.data()?.adminId === user.uid,
   }, { merge: true });
 };
 
   // Leave game (remove player from Firestore)
-  const leaveGame = async (name: string) => {
+  const leaveGame = async (_name: string) => {
     if (!user) return;
     await deleteDoc(doc(db, `rooms/${roomId}/players/${user.uid}`));
     await deleteDoc(doc(db, `rooms/${roomId}/vote/${user.uid}`));
   };
 
+  // Boot player (admin only)
+  const bootPlayer = async (playerId: string) => {
+    if (!user || !isAdmin || isBooted) return;
+    
+    try {
+      // Mark player as being booted to immediately hide them from UI
+      bootingPlayersRef.current.add(playerId);
+      
+      // Force immediate UI update by filtering the current players list
+      setPlayers(currentPlayers => currentPlayers.filter(p => p.id !== playerId));
+      
+      // Use batch for atomic operation
+      const batch = writeBatch(db);
+      
+      // Remove player document
+      const playerRef = doc(db, `rooms/${roomId}/players/${playerId}`);
+      batch.delete(playerRef);
+      
+      // Remove vote document
+      const voteRef = doc(db, `rooms/${roomId}/vote/${playerId}`);
+      batch.delete(voteRef);
+      
+      // Commit the batch
+      await batch.commit();
+      
+      // Keep the player hidden for a bit longer to ensure Firebase propagates
+      setTimeout(() => {
+        bootingPlayersRef.current.delete(playerId);
+      }, 1500); // 1.5 second delay to ensure Firebase has propagated
+      
+    } catch (error) {
+      console.error('Error booting player:', error);
+      // Remove from booting list if there was an error
+      bootingPlayersRef.current.delete(playerId);
+      // Refresh players list from Firebase in case of error
+      // The Firebase listener will handle this automatically
+    }
+  };
+
   // Select card (vote)
   const selectCard = async (value: string) => {
-    if (!user) return;
+    if (!user || isBooted) return;
     setSelectedCard(value);
     await setDoc(doc(db, `rooms/${roomId}/vote/${user.uid}`), {
       uid: user.uid,
@@ -170,6 +262,7 @@ const clearVotes = async () => {
 
   // Start voting (reset all votes)
 const startVoting = async () => {
+  if (isBooted) return;
   setGameState('voting');
   setSelectedCard(null);
   await updateDoc(doc(db, `rooms/${roomId}`), { gameState: 'voting' });
@@ -178,7 +271,7 @@ const startVoting = async () => {
 
   // Reveal cards
   const revealCards = async () => {
-  if (!roomId) return;
+  if (!roomId || isBooted) return;
   setGameState('revealed');
   await updateDoc(doc(db, `rooms/${roomId}`), { gameState: 'revealed' });
 };
@@ -190,7 +283,7 @@ const startVoting = async () => {
 
   // Send chat message
   const sendMessage = async (sender: string, text: string) => {
-    if (!user) return;
+    if (!user || isBooted) return;
     await addDoc(collection(db, `rooms/${roomId}/chat`), {
       id: uuidv4(),
       sender,
@@ -201,7 +294,7 @@ const startVoting = async () => {
   };
 
   // Send reaction to a message
-  const sendReaction = async (sender: string, emoji: string, messageId: string) => {
+  const sendReaction = async (_sender: string, _emoji: string, _messageId: string) => {
     // Find the message and update its reactions array
     // Firestore doesn't support array of objects update easily, so you may want to use a transaction or re-fetch and update
     // For demo, this is omitted
@@ -210,7 +303,7 @@ const startVoting = async () => {
   // Update avatar
   const updateAvatar = async (avatar: CatAvatar) => {
     setPlayerAvatar(avatar);
-    if (!user) return;
+    if (!user || isBooted) return;
     await updateDoc(doc(db, `rooms/${roomId}/players/${user.uid}`), {
       avatar: generateAvatarUrl(avatar),
     });
@@ -224,12 +317,16 @@ const startVoting = async () => {
         messages,
         selectedCard,
         playerAvatar,
+        currentPlayer,
+        isAdmin,
+        isBooted,
         joinGame,
         leaveGame,
         selectCard,
         startVoting,
         revealCards,
         resetGame,
+        bootPlayer,
         sendMessage,
         sendReaction,
         updateAvatar

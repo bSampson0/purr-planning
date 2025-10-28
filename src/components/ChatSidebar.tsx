@@ -8,7 +8,7 @@ interface ChatSidebarProps {
 }
 
 const ChatSidebar: React.FC<ChatSidebarProps> = ({ username }) => {
-  const { players, messages, sendMessage, sendReaction } = useGame();
+  const { players, messages, sendMessage, sendReaction, isBooted } = useGame();
   const { playSound } = useSound();
   const [newMessage, setNewMessage] = useState('');
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
@@ -37,7 +37,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ username }) => {
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || isBooted) return;
     
     sendMessage(username, newMessage);
     setNewMessage('');
@@ -45,6 +45,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ username }) => {
   };
 
   const handleReaction = (emoji: string, messageId: string) => {
+    if (isBooted) return;
     sendReaction(username, emoji, messageId);
     setShowEmojis(false);
     playSound('meow');
@@ -174,12 +175,13 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ username }) => {
                 type="text"
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
-                placeholder="Type a message..."
-                className="flex-grow px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 dark:bg-gray-700 dark:text-white"
+                placeholder={isBooted ? "You have been removed from this room" : "Type a message..."}
+                disabled={isBooted}
+                className="flex-grow px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 dark:bg-gray-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
               />
               <button
                 type="submit"
-                disabled={!newMessage.trim()}
+                disabled={!newMessage.trim() || isBooted}
                 className="bg-amber-600 hover:bg-amber-700 text-white p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Send size={18} />
