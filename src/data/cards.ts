@@ -42,3 +42,46 @@ export const catCards: CardType[] = [
     image: 'https://images.pexels.com/photos/3777622/pexels-photo-3777622.jpeg?auto=compress&cs=tinysrgb&w=600'
   }
 ];
+
+export const medievalCards: CardType[] = [
+  {
+    value: '1',
+    description: 'Squire Cat - Learning the ropes',
+    image: '/images/medieval-cats/one.png'
+  },
+  {
+    value: '2',
+    description: 'Page Cat - Serving with honor',
+    image: '/images/medieval-cats/two.png'
+  },
+  {
+    value: '3',
+    description: 'Knight Cat - Sworn to duty',
+    image: '/images/medieval-cats/three.png'
+  },
+  {
+    value: '5',
+    description: 'Baron Cat - Lord of the manor',
+    image: '/images/medieval-cats/five.png'
+  },
+  {
+    value: '8',
+    description: 'Earl Cat - Noble commander',
+    image: '/images/medieval-cats/eight.png'
+  },
+  {
+    value: '13',
+    description: 'Duke Cat - Royal authority',
+    image: '/images/medieval-cats/thirteen.png'
+  },
+  {
+    value: '21',
+    description: 'King Cat - Supreme ruler',
+    image: '/images/medieval-cats/twentyone.png'
+  },
+  {
+    value: '?',
+    description: 'Mysterious Jester Cat',
+    image: '/images/medieval-cats/question.png'
+  }
+];

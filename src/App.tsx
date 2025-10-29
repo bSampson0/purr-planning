@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, useParams, useLocation } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import { GameProvider } from './context/GameContext';
-import { SoundProvider } from './context/SoundContext';
 import Dashboard from './components/Dashboard';
 import Header from './components/Header';
 import { signInAnonymously } from 'firebase/auth';
@@ -24,7 +23,7 @@ function JoinRoom({ setUsername }: { setUsername: (name: string) => void }) {
   return (
     <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
       <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg max-w-md w-full">
-        <h2 className="text-2xl font-bold mb-6 text-center text-amber-800 dark:text-amber-300">
+        <h2 className="text-2xl font-bold mb-6 text-center text-red-800 dark:text-red-300">
           Join the Cat Herd
         </h2>
         <div className="mb-4">
@@ -36,7 +35,7 @@ function JoinRoom({ setUsername }: { setUsername: (name: string) => void }) {
             id="username"
             value={username}
             onChange={(e) => setLocalUsername(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-500 dark:bg-gray-700 dark:text-white"
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 dark:bg-gray-700 dark:text-white"
             placeholder="Enter your name"
           />
         </div>
@@ -49,14 +48,14 @@ function JoinRoom({ setUsername }: { setUsername: (name: string) => void }) {
             id="roomId"
             value={roomId}
             onChange={(e) => setRoomId(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-500 dark:bg-gray-700 dark:text-white"
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 dark:bg-gray-700 dark:text-white"
             placeholder="Enter room ID or leave blank"
           />
         </div>
         <button
           onClick={handleJoin}
           disabled={!username.trim()}
-          className="w-full bg-amber-600 hover:bg-amber-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Join Session
         </button>
@@ -85,7 +84,7 @@ function UsernamePrompt({ onSubmit }: { onSubmit: (name: string) => void }) {
       <button
         type="submit"
         disabled={!name.trim()}
-        className="w-full bg-amber-600 hover:bg-amber-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         Join Room
       </button>
@@ -111,7 +110,7 @@ function RoomWrapper() {
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
         <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg max-w-md w-full">
-          <h2 className="text-2xl font-bold mb-6 text-center text-amber-800 dark:text-amber-300">
+          <h2 className="text-2xl font-bold mb-6 text-center text-red-800 dark:text-red-300">
             Enter your name to join the room
           </h2>
           <UsernamePrompt onSubmit={handleJoin} />
@@ -130,15 +129,13 @@ function RoomWrapper() {
 function App() {
   return (
     <ThemeProvider>
-      <SoundProvider>
-        <Router>
-          <Header />
-          <Routes>
-            <Route path="/" element={<JoinRoom setUsername={() => {}} />} />
-            <Route path="/rooms/:roomId" element={<RoomWrapper />} />
-          </Routes>
-        </Router>
-      </SoundProvider>
+      <Router>
+        <Header />
+        <Routes>
+          <Route path="/" element={<JoinRoom setUsername={() => {}} />} />
+          <Route path="/rooms/:roomId" element={<RoomWrapper />} />
+        </Routes>
+      </Router>
     </ThemeProvider>
   );
 }

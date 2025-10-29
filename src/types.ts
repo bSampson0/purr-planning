@@ -50,3 +50,27 @@ export interface CatMood {
   value: string;
   image: string;
 }
+
+export interface MedievalAvatar {
+  rank: string;
+  armor: string;
+  weapon: string;
+}
+
+export interface MedievalRank {
+  name: string;
+  value: string;
+  color: string;
+}
+
+export interface MedievalArmor {
+  name: string;
+  value: string;
+  image: string;
+}
+
+export interface MedievalWeapon {
+  name: string;
+  value: string;
+  image: string;
+}

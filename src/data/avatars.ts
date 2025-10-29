@@ -1,4 +1,4 @@
-import { CatColor, CatAccessory, CatMood } from '../types';
+import { CatColor, CatAccessory, CatMood, MedievalRank, MedievalArmor, MedievalWeapon } from '../types';
 
 export const catColors: CatColor[] = [
   { name: 'Orange', value: 'orange', hex: '#f97316' },
@@ -33,24 +33,79 @@ export const catAccessories: CatAccessory[] = [
 ];
 
 export const catMoods: CatMood[] = [
-  { 
-    name: 'Happy', 
+  {
+    name: 'Happy',
     value: 'happy',
     image: 'https://images.pexels.com/photos/1170986/pexels-photo-1170986.jpeg?auto=compress&cs=tinysrgb&w=300'
   },
-  { 
-    name: 'Grumpy', 
+  {
+    name: 'Grumpy',
     value: 'grumpy',
     image: 'https://images.pexels.com/photos/156934/pexels-photo-156934.jpeg?auto=compress&cs=tinysrgb&w=300'
   },
-  { 
-    name: 'Sleepy', 
+  {
+    name: 'Sleepy',
     value: 'sleepy',
     image: 'https://images.pexels.com/photos/2558605/pexels-photo-2558605.jpeg?auto=compress&cs=tinysrgb&w=300'
   },
-  { 
-    name: 'Excited', 
+  {
+    name: 'Excited',
     value: 'excited',
     image: 'https://images.pexels.com/photos/1521304/pexels-photo-1521304.jpeg?auto=compress&cs=tinysrgb&w=300'
+  }
+];
+
+export const medievalRanks: MedievalRank[] = [
+  { name: 'Squire', value: 'squire', color: '#78350f' },
+  { name: 'Knight', value: 'knight', color: '#92400e' },
+  { name: 'Baron', value: 'baron', color: '#b45309' },
+  { name: 'Earl', value: 'earl', color: '#d97706' },
+  { name: 'Duke', value: 'duke', color: '#f59e0b' },
+  { name: 'King', value: 'king', color: '#fbbf24' }
+];
+
+export const medievalArmor: MedievalArmor[] = [
+  {
+    name: 'Cloth',
+    value: 'cloth',
+    image: '/images/medieval-cats/one.png'
+  },
+  {
+    name: 'Leather',
+    value: 'leather',
+    image: '/images/medieval-cats/three.png'
+  },
+  {
+    name: 'Chainmail',
+    value: 'chainmail',
+    image: '/images/medieval-cats/five.png'
+  },
+  {
+    name: 'Plate Armor',
+    value: 'plate',
+    image: '/images/medieval-cats/eight.png'
+  }
+];
+
+export const medievalWeapons: MedievalWeapon[] = [
+  {
+    name: 'Dagger',
+    value: 'dagger',
+    image: '/images/medieval-cats/one.png'
+  },
+  {
+    name: 'Sword',
+    value: 'sword',
+    image: '/images/medieval-cats/three.png'
+  },
+  {
+    name: 'Mace',
+    value: 'mace',
+    image: '/images/medieval-cats/five.png'
+  },
+  {
+    name: 'Greatsword',
+    value: 'greatsword',
+    image: '/images/medieval-cats/eight.png'
   }
 ];

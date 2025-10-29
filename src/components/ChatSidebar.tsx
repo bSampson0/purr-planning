@@ -1,19 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
 import { useGame } from '../context/GameContext';
-import { useSound } from '../context/SoundContext';
-import { MessageCircle, Send, SmilePlus } from 'lucide-react';
+import { MessageCircle, Send } from 'lucide-react';
 
 interface ChatSidebarProps {
   username: string;
 }
 
 const ChatSidebar: React.FC<ChatSidebarProps> = ({ username }) => {
-  const { players, messages, sendMessage, sendReaction, isBooted } = useGame();
-  const { playSound } = useSound();
+  const { players, messages, sendMessage, isBooted } = useGame();
   const [newMessage, setNewMessage] = useState('');
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
   const [isOpen, setIsOpen] = useState(!isMobile);
-  const [showEmojis, setShowEmojis] = useState<string | false>(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -38,20 +35,10 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ username }) => {
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim() || isBooted) return;
-    
+
     sendMessage(username, newMessage);
     setNewMessage('');
-    playSound('meow');
   };
-
-  const handleReaction = (emoji: string, messageId: string) => {
-    if (isBooted) return;
-    sendReaction(username, emoji, messageId);
-    setShowEmojis(false);
-    playSound('meow');
-  };
-
-  const catEmojis = ['😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾', '🐱', '🐈'];
 
   const getPlayer = (name: string) => players.find(p => p.name === name);
 
@@ -60,7 +47,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ username }) => {
       {isMobile && !isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-4 right-4 z-10 p-4 bg-amber-600 text-white rounded-full shadow-lg"
+          className="fixed bottom-4 right-4 z-10 p-4 bg-red-600 text-white rounded-full shadow-lg"
         >
           <MessageCircle />
         </button>
@@ -75,7 +62,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ username }) => {
       >
         <div className="flex flex-col h-full lg:h-[calc(100vh-7rem)] lg:sticky lg:top-20">
           <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-            <h3 className="text-lg font-bold text-amber-800 dark:text-amber-300">
+            <h3 className="text-lg font-bold text-red-800 dark:text-red-300">
               Chat
             </h3>
             {isMobile && (
@@ -100,66 +87,22 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ username }) => {
                   <div key={message.id} className="mb-4">
                     <div className="flex items-start gap-2">
                       {player && (
-                        <img 
-                          src={player.avatar} 
-                          alt={`${message.sender}'s avatar`} 
-                          className="w-8 h-8 rounded-full object-cover"
-                        />
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold bg-red-200 dark:bg-red-800 text-red-800 dark:text-red-200">
+                          {player.name.charAt(0).toUpperCase()}
+                        </div>
                       )}
                       <div className="flex-grow">
                         <div className="flex items-baseline gap-2 mb-1">
-                          <span className="font-medium text-amber-800 dark:text-amber-300">
+                          <span className="font-medium text-red-800 dark:text-red-300">
                             {message.sender}
                           </span>
                           <span className="text-xs text-gray-500 dark:text-gray-400">
                             {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
-                        <div className="bg-amber-50 dark:bg-gray-700 p-2 rounded-lg text-gray-800 dark:text-gray-200">
+                        <div className="bg-red-50 dark:bg-gray-700 p-2 rounded-lg text-gray-800 dark:text-gray-200">
                           {message.text}
                         </div>
-                        
-                        {message.reactions.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {message.reactions.map((reaction, index) => (
-                              <div 
-                                key={index}
-                                className="bg-gray-100 dark:bg-gray-600 px-2 py-0.5 rounded-full text-xs flex items-center gap-1"
-                              >
-                                <span>{reaction.emoji}</span>
-                                <span className="text-gray-600 dark:text-gray-300">
-                                  {reaction.sender}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                        
-                        <button
-                          onClick={() => {
-                            setShowEmojis(prev => prev === message.id ? false : message.id);
-                          }}
-                          className="text-xs text-gray-500 hover:text-amber-600 dark:text-gray-400 dark:hover:text-amber-400 mt-1"
-                        >
-                          <SmilePlus size={14} className="inline mr-1" />
-                          React
-                        </button>
-                        
-                        {showEmojis === message.id && (
-                          <div className="bg-white dark:bg-gray-700 p-2 rounded-lg shadow-md mt-2 inline-block">
-                            <div className="flex flex-wrap gap-1">
-                              {catEmojis.map(emoji => (
-                                <button
-                                  key={emoji}
-                                  onClick={() => handleReaction(emoji, message.id)}
-                                  className="hover:bg-gray-100 dark:hover:bg-gray-600 p-1 rounded text-lg"
-                                >
-                                  {emoji}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -177,12 +120,12 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ username }) => {
                 onChange={(e) => setNewMessage(e.target.value)}
                 placeholder={isBooted ? "You have been removed from this room" : "Type a message..."}
                 disabled={isBooted}
-                className="flex-grow px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 dark:bg-gray-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-grow px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:bg-gray-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
               />
               <button
                 type="submit"
                 disabled={!newMessage.trim() || isBooted}
-                className="bg-amber-600 hover:bg-amber-700 text-white p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Send size={18} />
               </button>

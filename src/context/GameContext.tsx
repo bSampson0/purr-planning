@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { v4 as uuidv4 } from '../utils/uuid';
-import { Player, GameState, Message, Reaction, CatAvatar } from '../types';
-import { generateAvatarUrl } from '../utils/avatars';
+import { Player, GameState, Message, Reaction, CatAvatar, MedievalAvatar } from '../types';
+import { generateAvatarUrl, generateMedievalAvatarUrl } from '../utils/avatars';
 import { db } from '../firebaseConfig';
 import {
   collection,
@@ -26,6 +26,7 @@ interface GameContextType {
   messages: Message[];
   selectedCard: string | null;
   playerAvatar: CatAvatar;
+  medievalAvatar: MedievalAvatar;
   currentPlayer: Player | null;
   isAdmin: boolean;
   isBooted: boolean;
@@ -39,6 +40,7 @@ interface GameContextType {
   sendMessage: (sender: string, text: string) => void;
   sendReaction: (sender: string, emoji: string, messageId: string) => void;
   updateAvatar: (avatar: CatAvatar) => void;
+  updateMedievalAvatar: (avatar: MedievalAvatar) => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -67,6 +69,11 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children, roomId }) 
     color: 'orange',
     accessory: 'none',
     mood: 'happy'
+  });
+  const [medievalAvatar, setMedievalAvatar] = useState<MedievalAvatar>({
+    rank: 'squire',
+    armor: 'cloth',
+    weapon: 'dagger'
   });
 
   // Use refs to track state without causing re-renders
@@ -309,6 +316,15 @@ const startVoting = async () => {
     });
   };
 
+  // Update Medieval avatar
+  const updateMedievalAvatar = async (avatar: MedievalAvatar) => {
+    setMedievalAvatar(avatar);
+    if (!user || isBooted) return;
+    await updateDoc(doc(db, `rooms/${roomId}/players/${user.uid}`), {
+      avatar: generateMedievalAvatarUrl(avatar),
+    });
+  };
+
   return (
     <GameContext.Provider
       value={{
@@ -317,6 +333,7 @@ const startVoting = async () => {
         messages,
         selectedCard,
         playerAvatar,
+        medievalAvatar,
         currentPlayer,
         isAdmin,
         isBooted,
@@ -329,7 +346,8 @@ const startVoting = async () => {
         bootPlayer,
         sendMessage,
         sendReaction,
-        updateAvatar
+        updateAvatar,
+        updateMedievalAvatar
       }}
     >
       {children}
